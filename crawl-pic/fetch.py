@@ -37,7 +37,7 @@ def loading(lock):
     while lock[0]:
         for symbol in loading_symbols:
             # 使用 \r 把光标移动到行首，再输出加载符号
-            print(f'\r{sentences} {symbol}', end='', flush=True)
+            print(f'\r{status} {symbol}', end='', flush=True)
             # 暂停 1 秒钟
             time.sleep(0.3)
 
