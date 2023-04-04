@@ -1,8 +1,9 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# @Time    : 04/02/2023 22:13
-# @Author  : Ctsuhlu
-# @File    : get.py
+# @Time    : 04/03/2023 23:11
+# @Author  : Ctsuhlu 
+# @File    : fetch.py
+
 
 import requests
 from bs4 import BeautifulSoup
@@ -18,6 +19,7 @@ hearder = {
 final_links = set()
 img_links = set()
 
+# 加载动画
 def loading(lock):
     chars = ['⣾', '⣷', '⣯', '⣟', '⡿', '⢿', '⣻', '⣽']
     i = 0
@@ -28,62 +30,79 @@ def loading(lock):
         time.sleep(0.25)
     print('')
 
-print('正在获取图片链接...')
-lock = [True]
-_thread.start_new_thread(loading, (lock,))
+# 获取所有图片链接
+def get_img_url():
 
-new_folder = './pics'
-os.mkdir(new_folder)
+    # 获取网页源码
+    res = requests.get(url=url, headers=hearder)
+    soup = BeautifulSoup(res.text, 'lxml')
 
-# 获取网页源码
-res = requests.get(url=url, headers=hearder)
-soup = BeautifulSoup(res.text, 'lxml')
+    # 获取网页标题
+    # s = soup.find_all('p', {'class': 'title'})
 
-# 获取网页标题
-s = soup.find_all('p', {'class': 'title'})
+    # 获取网页主链接
+    divs = soup.find_all('div', attrs={'class': 'photo'})
+    for div in divs:    # 一次解析
+        link = div.find_all('a')
+        for links in link:
+            href = links.get('href')
+            full_url = base_url + str(href)
+            res2 = requests.get(url=full_url, headers=hearder)    # 二次解析
+            soup2 = BeautifulSoup(res2.text, 'lxml')
+            div2 = soup2.find_all('div', attrs={'class': 'page'})
+            for div3 in div2:
+                next_link = div3.find_all('a')
+                for next_links in next_link:
+                    if 'href' not in next_links.attrs:
+                        continue
+                    else:
+                        next_url = next_links.get('href')
+                        cmb_link = base_url + str(next_url)
+                        if cmb_link not in final_links:
+                            final_links.add(cmb_link)
 
-# 获取网页主链接
-divs = soup.find_all('div', attrs={'class': 'photo'})
-for div in divs:
-    link = div.find_all('a')
-    for links in link:
-        href = links.get('href')
-        full_url = base_url + str(href)
-        res2 = requests.get(url=full_url, headers=hearder)
-        soup2 = BeautifulSoup(res2.text, 'lxml')
-        div2 = soup2.find_all('div', attrs={'class': 'page'})
-        for div3 in div2:
-            next_link = div3.find_all('a')
-            for next_links in next_link:
-                if 'href' not in next_links.attrs:
-                    continue
-                else:
-                    next_url = next_links.get('href')
-                    cmb_link = base_url + str(next_url)
-                    if cmb_link not in final_links:
-                        final_links.add(cmb_link)
+    # 获取图片链接
+    for img in final_links:
+        res3 = requests.get(url=img, headers=hearder)
+        soup3 = BeautifulSoup(res3.text, 'lxml')
+        img_url = soup3.find_all('a', attrs={'href': '#'})
+        for img_urls in img_url:
+            img_url2 = img_urls.find_all('img')
+            for img_url3 in img_url2:
+                src = img_url3.get('src')
+                img_links.add(src)
 
-# 获取图片
-for img in final_links:
-    res3 = requests.get(url=img, headers=hearder)
-    soup3 = BeautifulSoup(res3.text, 'lxml')
-    img_url = soup3.find_all('a', attrs={'href': '#'})
-    for img_urls in img_url:
-        img_url2 = img_urls.find_all('img')
-        for img_url3 in img_url2:
-            src = img_url3.get('src')
-            img_links.add(src)
+# 下载图片
+def download_img():
+    for img_save in img_links:
+        filename = str(img_save.split('/')[-1])
+        img_res = requests.get(url=img_save, headers=hearder)
+        with open('./pics/' + filename, 'wb') as f:
+            f.write(img_res.content)
 
-lock[0] = False
 
-print('正在下载图片...')
-lock = True
-_thread.start_new_thread(loading, (lock,))
+# 创建文件夹
+def new_folder():
+    folder_path = './pics'
+    if not os.path.exists(folder_path):
+        os.mkdir(folder_path)
 
-for img_save in img_links:
-    filename = str(img_save.split('/')[-1])
-    img_res = requests.get(url=img_save, headers=hearder)
-    with open('./pics/' + filename, 'wb') as f:
-        f.write(img_res.content)
+def main():
+    new_folder()
+    print('正在获取图片链接...')
+    start = time.time()
+    lock = [True]
+    _thread.start_new_thread(loading, (lock,))
+    get_img_url()
+    lock[0] = False
+    print('获取图片链接完成，耗时：%.2f秒' % (time.time() - start))
+    print('正在下载图片...')
+    start = time.time()
+    lock = [True]
+    _thread.start_new_thread(loading, (lock,))
+    download_img()
+    lock[0] = False
+    print('下载图片完成，耗时：%.2f秒' % (time.time() - start))
 
-lock = False
+if __name__ == '__main__':
+    main()
