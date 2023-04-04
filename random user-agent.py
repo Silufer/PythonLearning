@@ -5,6 +5,8 @@
 # @File    : random user-agent.py
 
 from fake_useragent import UserAgent
+
 raw_user_agent = UserAgent(browsers=['edge', 'chrome'])
 user_agent = raw_user_agent.random
+
 print(user_agent)

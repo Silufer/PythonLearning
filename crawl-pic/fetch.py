@@ -10,25 +10,37 @@ from bs4 import BeautifulSoup
 import time
 import _thread
 import os
+from fake_useragent import UserAgent
 
 url = 'https://www.youwu.cc/xiaoyu'
 base_url = 'https://www.youwu.cc'
-hearder = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36'
-}
 final_links = set()
 img_links = set()
+status = ''
+
+# 随机生成User-Agent
+def user_agent():
+    raw_user_agent = UserAgent()
+    user_agent = raw_user_agent.random
+    return user_agent
+hearder = {
+    'User-Agent': user_agent()
+}
 
 # 加载动画
 def loading(lock):
-    chars = ['⣾', '⣷', '⣯', '⣟', '⡿', '⢿', '⣻', '⣽']
-    i = 0
+
+    # 定义一个字符串列表，表示不同的加载符号
+    loading_symbols = ['|', '/', '-', '\\']
+
+    # 循环输出加载符号
     while lock[0]:
-        i = (i+1) % len(chars)
-        print('\033[A%s %s' %
-              (chars[i], lock[1] or '' if len(lock) >= 2 else ''))
-        time.sleep(0.25)
-    print('')
+        for symbol in loading_symbols:
+            # 使用 \r 把光标移动到行首，再输出加载符号
+            print(f'\r{sentences} {symbol}', end='', flush=True)
+            # 暂停 1 秒钟
+            time.sleep(0.3)
+
 
 # 获取所有图片链接
 def get_img_url():
@@ -89,20 +101,26 @@ def new_folder():
 
 def main():
     new_folder()
-    print('正在获取图片链接...')
+    status = '正在获取图片链接'
     start = time.time()
     lock = [True]
     _thread.start_new_thread(loading, (lock,))
     get_img_url()
     lock[0] = False
-    print('获取图片链接完成，耗时：%.2f秒' % (time.time() - start))
-    print('正在下载图片...')
-    start = time.time()
+    end = time.time()
+    hours = (end - start) // 3600
+    minutes = (end - start - hours * 3600) // 60
+    print('获取图片链接完成，耗时：{hours}h{minutes}min')
+    status = '正在下载图片'
+    start2 = time.time()
     lock = [True]
     _thread.start_new_thread(loading, (lock,))
     download_img()
     lock[0] = False
-    print('下载图片完成，耗时：%.2f秒' % (time.time() - start))
+    end2 = time.time()
+    hours2 = (end2 - start2) // 3600
+    minutes2 = (end2 - start2 - hours2 * 3600) // 60
+    print('下载图片完成，耗时：{hours2}h{minutes2}min')
 
 if __name__ == '__main__':
     main()
