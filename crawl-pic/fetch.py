@@ -65,7 +65,7 @@ def get_img_url():
             for div3 in div2:
                 next_link = div3.find_all('a')
                 for next_links in next_link:
-                    if 'href' not in next_links.attrs:
+                    if 'href' not in next_links.attrs:    #去除无用的a标签
                         continue
                     else:
                         next_url = next_links.get('href')
