@@ -65,7 +65,7 @@ def get_img_url():
             for div3 in div2:
                 next_link = div3.find_all('a')
                 for next_links in next_link:
-                    if 'href' not in next_links.attrs:    #去除无用的a标签
+                    if 'href' not in next_links.attrs:    # 去除无用的a标签
                         continue
                     else:
                         next_url = next_links.get('href')
@@ -121,7 +121,7 @@ def main():
     end2 = time.time()
     hours2 = int((end2 - start2) // 3600)
     minutes2 = int((end2 - start2 - hours2 * 3600) // 60)
-    print('下载图片完成，耗时：',hours2,'h',minutes2,'min')
+    print('下载图片完成，耗时：', hours2, 'h', minutes2, 'min')
 
 if __name__ == '__main__':
     main()
