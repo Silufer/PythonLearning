@@ -100,6 +100,7 @@ def new_folder():
         os.mkdir(folder_path)
 
 def main():
+    global status
     new_folder()
     status = '正在获取图片链接'
     start = time.time()
@@ -110,7 +111,7 @@ def main():
     end = time.time()
     hours = int((end - start) // 3600)
     minutes = int((end - start - hours * 3600) // 60)
-    print('获取图片链接完成，耗时：{hours}h{minutes}min')
+    print('获取图片链接完成，耗时：', hours, 'h', minutes, 'min')
     status = '正在下载图片'
     start2 = time.time()
     lock = [True]
@@ -120,7 +121,7 @@ def main():
     end2 = time.time()
     hours2 = int((end2 - start2) // 3600)
     minutes2 = int((end2 - start2 - hours2 * 3600) // 60)
-    print('下载图片完成，耗时：{hours2}h{minutes2}min')
+    print('下载图片完成，耗时：', hours2, 'h', minutes2, 'min')
 
 if __name__ == '__main__':
     main()
