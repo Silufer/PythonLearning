@@ -18,7 +18,7 @@ def get():
     res = raw_res.json()
 
 def clear():
-    os.system('cls')
+    os.system('cls')    # windows use ''cls', linux use 'clear'
 
 def loading():
     print("\r加载中", end="")
