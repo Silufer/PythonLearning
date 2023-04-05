@@ -121,7 +121,7 @@ def main():
     end2 = time.time()
     hours2 = int((end2 - start2) // 3600)
     minutes2 = int((end2 - start2 - hours2 * 3600) // 60)
-    print('下载图片完成，耗时：', hours2, 'h', minutes2, 'min')
+    print('下载图片完成，耗时：',hours2,'h',minutes2,'min')
 
 if __name__ == '__main__':
     main()
