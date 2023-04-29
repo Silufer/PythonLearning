@@ -18,18 +18,21 @@ final_links = set()
 img_links = set()
 status = ''
 
+
 # 随机生成User-Agent
-def user_agent():
+def ua():
     raw_user_agent = UserAgent()
     user_agent = raw_user_agent.random
     return user_agent
+
+
 hearder = {
-    'User-Agent': user_agent()
+    'User-Agent': ua()
 }
+
 
 # 加载动画
 def loading(lock):
-
     # 定义一个字符串列表，表示不同的加载符号
     loading_symbols = ['|', '/', '-', '\\']
 
@@ -44,7 +47,6 @@ def loading(lock):
 
 # 获取所有图片链接
 def get_img_url():
-
     # 获取网页源码
     res = requests.get(url=url, headers=hearder)
     soup = BeautifulSoup(res.text, 'lxml')
@@ -54,18 +56,18 @@ def get_img_url():
 
     # 获取网页主链接
     divs = soup.find_all('div', attrs={'class': 'photo'})
-    for div in divs:    # 一次解析
+    for div in divs:  # 一次解析
         link = div.find_all('a')
         for links in link:
             href = links.get('href')
             full_url = base_url + str(href)
-            res2 = requests.get(url=full_url, headers=hearder)    # 二次解析
+            res2 = requests.get(url=full_url, headers=hearder)  # 二次解析
             soup2 = BeautifulSoup(res2.text, 'lxml')
             div2 = soup2.find_all('div', attrs={'class': 'page'})
             for div3 in div2:
                 next_link = div3.find_all('a')
                 for next_links in next_link:
-                    if 'href' not in next_links.attrs:    # 去除无用的a标签
+                    if 'href' not in next_links.attrs:  # 去除无用的a标签
                         continue
                     else:
                         next_url = next_links.get('href')
@@ -84,6 +86,7 @@ def get_img_url():
                 src = img_url3.get('src')
                 img_links.add(src)
 
+
 # 下载图片
 def download_img():
     for img_save in img_links:
@@ -98,6 +101,7 @@ def new_folder():
     folder_path = './pics'
     if not os.path.exists(folder_path):
         os.mkdir(folder_path)
+
 
 def main():
     global status
@@ -122,6 +126,7 @@ def main():
     hours2 = int((end2 - start2) // 3600)
     minutes2 = int((end2 - start2 - hours2 * 3600) // 60)
     print('下载图片完成，耗时：', hours2, 'h', minutes2, 'min')
+
 
 if __name__ == '__main__':
     main()
