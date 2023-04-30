@@ -1,9 +1,9 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# @Time    : 04/03/2023 23:11
+# @Time    : 04/29/2023 20:35
 # @Author  : Ctsuhlu 
 # @File    : fetch.py
-
+# @Software: VS Code
 
 import requests
 from bs4 import BeautifulSoup
@@ -17,6 +17,10 @@ base_url = 'https://www.youwu.cc'
 final_links = set()
 img_links = set()
 status = ''
+date = {
+    'month': '',
+    'day': ''
+}
 
 
 # 随机生成User-Agent
@@ -51,9 +55,6 @@ def get_img_url():
     res = requests.get(url=url, headers=hearder)
     soup = BeautifulSoup(res.text, 'lxml')
 
-    # 获取网页标题
-    # s = soup.find_all('p', {'class': 'title'})
-
     # 获取网页主链接
     divs = soup.find_all('div', attrs={'class': 'photo'})
     for div in divs:  # 一次解析
@@ -85,6 +86,13 @@ def get_img_url():
             for img_url3 in img_url2:
                 src = img_url3.get('src')
                 img_links.add(src)
+
+    #获取最近日期
+    d = soup.find_all('span', {'class': 'date'})
+    for i in d:
+        raw_date = i.text
+        date['month'] = raw_date[20:22]
+        date['day'] = raw_date[23:25]
 
 
 # 下载图片
