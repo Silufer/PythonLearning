@@ -11,17 +11,15 @@ import time
 import _thread
 import os
 from fake_useragent import UserAgent
+from datetime import datetime
+import json
 
 url = 'https://www.youwu.cc/xiaoyu'
 base_url = 'https://www.youwu.cc'
 final_links = set()
 img_links = set()
 status = ''
-date = {
-    'month': '',
-    'day': ''
-}
-
+date_format = "%Y-%m-%d %H:%M:%S"
 
 # 随机生成User-Agent
 def ua():
@@ -30,7 +28,7 @@ def ua():
     return user_agent
 
 
-hearder = {
+header = {
     'User-Agent': ua()
 }
 
@@ -48,11 +46,55 @@ def loading(lock):
             # 暂停 1 秒钟
             time.sleep(0.3)
 
+# 检查更新
+def check_update():
+    if os.path.exists('data.json'):  # 判断文件是否存在
+        res = requests.get(url=url, headers=header)  # 获取最新更新时间
+        res.encoding = 'UTF-8'
+        soup = BeautifulSoup(res.text, 'lxml')
+        page = soup.select_one('html > body > div:nth-of-type(3) > div:nth-of-type(2) > ul > li:nth-of-type(1) > a')
+        link = page.get('href')
+        aurl = base_url+link
+        res2 = requests.get(url=aurl, headers=header)
+        res2.encoding = 'UTF-8'
+        soup2 = BeautifulSoup(res2.text, 'lxml')
+        page2 = soup2.select_one('html > body > div:nth-of-type(2) > div:nth-of-type(2) > span:nth-of-type(1)')
+        raw = page2.text
+        raw2 = raw.split('：')
+        date = raw2[1]
+        new = datetime.strptime(date, date_format)
+        with open('data.json', 'r') as f:  # 读取时间记录文件
+            checkdate = json.load(f)
+        old = datetime.strptime(checkdate["CheckDate"], '%Y-%m-%d %H:%M:%S')
+        if old < new:  # 比较时间
+            return True
+        else:
+            return False
+    else:
+        return False
+
+# 保存更新时间
+def save_date():
+    res = requests.get(url=url, headers=header)
+    res.encoding = 'UTF-8'
+    soup = BeautifulSoup(res.text, 'lxml')
+    page = soup.select_one('html > body > div:nth-of-type(3) > div:nth-of-type(2) > ul > li:nth-of-type(1) > a')
+    link = page.get('href')
+    aurl = base_url + link
+    res2 = requests.get(url=aurl, headers=header)
+    res2.encoding = 'UTF-8'
+    soup2 = BeautifulSoup(res2.text, 'lxml')
+    page2 = soup2.select_one('html > body > div:nth-of-type(2) > div:nth-of-type(2) > span:nth-of-type(1)')
+    raw = page2.text
+    raw2 = raw.split('：')
+    date = raw2[1]
+    with open('data.json', 'w') as f:
+        json.dump(date, f)
 
 # 获取所有图片链接
 def get_img_url():
     # 获取网页源码
-    res = requests.get(url=url, headers=hearder)
+    res = requests.get(url=url, headers=header)
     soup = BeautifulSoup(res.text, 'lxml')
 
     # 获取网页主链接
@@ -62,7 +104,7 @@ def get_img_url():
         for links in link:
             href = links.get('href')
             full_url = base_url + str(href)
-            res2 = requests.get(url=full_url, headers=hearder)  # 二次解析
+            res2 = requests.get(url=full_url, headers=header)  # 二次解析
             soup2 = BeautifulSoup(res2.text, 'lxml')
             div2 = soup2.find_all('div', attrs={'class': 'page'})
             for div3 in div2:
@@ -78,7 +120,7 @@ def get_img_url():
 
     # 获取图片链接
     for img in final_links:
-        res3 = requests.get(url=img, headers=hearder)
+        res3 = requests.get(url=img, headers=header)
         soup3 = BeautifulSoup(res3.text, 'lxml')
         img_url = soup3.find_all('a', attrs={'href': '#'})
         for img_urls in img_url:
@@ -87,19 +129,12 @@ def get_img_url():
                 src = img_url3.get('src')
                 img_links.add(src)
 
-    #获取最近日期
-    d = soup.find_all('span', {'class': 'date'})
-    for i in d:
-        raw_date = i.text
-        date['month'] = raw_date[20:22]
-        date['day'] = raw_date[23:25]
-
 
 # 下载图片
 def download_img():
     for img_save in img_links:
         filename = str(img_save.split('/')[-1])
-        img_res = requests.get(url=img_save, headers=hearder)
+        img_res = requests.get(url=img_save, headers=header)
         with open('./pics/' + filename, 'wb') as f:
             f.write(img_res.content)
 
@@ -113,6 +148,13 @@ def new_folder():
 
 def main():
     global status
+    status = '正在检查最新发布'
+    if check_update():
+        print('有新的发布')
+    else:
+        print('没有新的发布')
+        time.sleep(3)
+        exit()
     new_folder()
     status = '正在获取图片链接'
     start = time.time()
@@ -129,6 +171,7 @@ def main():
     lock = [True]
     _thread.start_new_thread(loading, (lock,))
     download_img()
+    save_date()
     lock[0] = False
     end2 = time.time()
     hours2 = int((end2 - start2) // 3600)
