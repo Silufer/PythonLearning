@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 import time
 import _thread
 import os
-from fake_useragent import UserAgent
 from datetime import datetime
 import json
 
@@ -21,15 +20,8 @@ img_links = set()
 status = ''
 date_format = "%Y-%m-%d %H:%M:%S"
 
-# 随机生成User-Agent
-def ua():
-    raw_user_agent = UserAgent()
-    user_agent = raw_user_agent.random
-    return user_agent
-
-
 header = {
-    'User-Agent': ua()
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.19577'
 }
 
 
@@ -148,7 +140,6 @@ def new_folder():
 
 def main():
     global status
-    status = '正在检查最新发布'
     if check_update():
         print('有新的发布')
     else:
