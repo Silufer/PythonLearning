@@ -52,7 +52,7 @@ def check_update():
         else:
             return False
     else:
-        return False
+        return True
 
 if __name__ == '__main__':
     if check_update():

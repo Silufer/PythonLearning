@@ -71,7 +71,7 @@ def check_update():
         else:
             return False
     else:
-        return False
+        return True
 
 # 保存更新时间
 def save_date():
