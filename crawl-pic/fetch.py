@@ -57,7 +57,7 @@ def check_update():
         new = datetime.strptime(date, date_format)
         with open('data.json', 'r') as f:  # 读取时间记录文件
             checkdate = json.load(f)
-        old = datetime.strptime(checkdate["CheckDate"], '%Y-%m-%d %H:%M:%S')
+        old = datetime.strptime(checkdate, '%Y-%m-%d %H:%M:%S')
         if old < new:  # 比较时间
             return True
         else:
@@ -141,11 +141,15 @@ def new_folder():
 def main():
     global status
     if check_update():
-        print('有新的发布')
+        b = input('有新的发布，是否下载（y/n）')
+        if b == 'y':
+            pass
+        elif b == 'n':
+            exit()
     else:
-        print('没有新的发布')
-        time.sleep(3)
-        exit()
+        a = input('没有新的发布, 输入q退出。')
+        if a == 'q':
+            exit()
     new_folder()
     status = '正在获取图片链接'
     start = time.time()
@@ -156,7 +160,7 @@ def main():
     end = time.time()
     hours = int((end - start) // 3600)
     minutes = int((end - start - hours * 3600) // 60)
-    print('获取图片链接完成，耗时：', hours, 'h', minutes, 'min')
+    print('\r\n获取图片链接完成，耗时：', hours, 'h', minutes, 'min')
     status = '正在下载图片'
     start2 = time.time()
     lock = [True]
@@ -167,8 +171,10 @@ def main():
     end2 = time.time()
     hours2 = int((end2 - start2) // 3600)
     minutes2 = int((end2 - start2 - hours2 * 3600) // 60)
-    print('下载图片完成，耗时：', hours2, 'h', minutes2, 'min')
-
+    print('\r\n下载图片完成，耗时：', hours2, 'h', minutes2, 'min')
+    c = input('输入q退出。')
+    if c == 'q':
+        exit()
 
 if __name__ == '__main__':
     main()
