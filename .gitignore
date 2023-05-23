@@ -3,5 +3,6 @@ build/
 dist/
 .idea/
 .vscode/
-*.spec
 pics/
+/crawl-pic/test/
+/crawl-pic/data.json
