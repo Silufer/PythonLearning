@@ -6,3 +6,4 @@ dist/
 pics/
 /crawl-pic/test/
 /crawl-pic/data.json
+*.spec
